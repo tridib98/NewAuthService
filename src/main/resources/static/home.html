@@ -1,0 +1,99 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Home</title>
+  <style>
+    body { font-family: Arial, sans-serif; }
+    button { margin: 5px; }
+    pre { background: #f4f4f4; padding: 10px; }
+  </style>
+</head>
+
+<body>
+  <h2>Home</h2>
+  <div id="user"></div>
+
+  <button onclick="callApi('/api/home/public')">Public</button>
+  <button onclick="callApi('/api/home/viewer')">Viewer</button>
+  <button onclick="callApi('/api/home/regulatory')">Regulatory</button>
+  <button onclick="callApi('/api/home/admin')">Admin</button>
+
+  <br/><br/>
+  <button onclick="logout()">Logout</button>
+
+  <pre id="out"></pre>
+
+<script>
+  /* -----------------------------
+     Helpers
+  ----------------------------- */
+
+  function getToken() {
+    return localStorage.getItem("jwtToken");
+  }
+
+  function setToken(token) {
+    localStorage.setItem("jwtToken", token);
+  }
+
+  function logout() {
+    localStorage.removeItem("jwtToken");
+    localStorage.removeItem("username");
+    window.location.href = "login.html";
+  }
+
+  /* -----------------------------
+     Refresh token flow
+  ----------------------------- */
+
+  async function refreshToken() {
+    const res = await fetch("/auth/refresh", {
+      method: "POST",
+      credentials: "include" // send HttpOnly cookie
+    });
+    
+    if (!res.ok) {
+      logout();
+      return null;
+    }
+
+    const data = await res.json();
+    console.log("Newly Created AccessToken - "+data.token);
+    setToken(data.token);
+    return data.token;
+  }
+  /* -----------------------------
+     API call with auto-refresh
+  ----------------------------- */
+  async function callApi(path) {
+    let token = getToken();
+
+    let res = await fetch(path, {
+      headers: token ? { Authorization: "Bearer " + token } : {}
+    });
+
+    // Access token expired → refresh
+    if (res.status === 401) {
+      token = await refreshToken();
+      if (!token) return;
+
+      // Retry original request
+      res = await fetch(path, {
+        headers: { Authorization: "Bearer " + token }
+      });
+    }
+
+    const text = await res.text();
+    document.getElementById("out").innerText =
+      `STATUS: ${res.status}\n\n${text}`;
+  }
+  /* -----------------------------
+     Init UI
+  ----------------------------- */
+  const username = localStorage.getItem("username") || "anonymous";
+  document.getElementById("user").innerText = "User: " + username;
+
+</script>
+</body>
+</html>
