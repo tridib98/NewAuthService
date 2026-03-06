@@ -45,13 +45,14 @@ public class SecurityConfig {
                 .requestMatchers("/auth/**").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
                 .requestMatchers("/auth/login", "/auth/refresh").permitAll()
+                .requestMatchers("/actuator","/actuator/**").permitAll()
                 .requestMatchers("/", "/index.html", "/login.html", "/home.html", "/static/**").permitAll()
                 .anyRequest().authenticated()
             )
 
-             /*.exceptionHandling(ex -> ex
+             .exceptionHandling(ex -> ex
             .authenticationEntryPoint(jwtAuthEntryPoint)
-        ) */
+        ) 
             
             // allow H2 console to work in browser
             .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))

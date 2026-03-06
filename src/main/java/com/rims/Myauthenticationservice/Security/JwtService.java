@@ -77,7 +77,9 @@ public class JwtService {
     public String extractUsername(String token) {
         return parse(token).getBody().getSubject();
     }
-
+     public String extractUsernameFromRefreshToken(String Rtoken) {
+        return parseRtoken(Rtoken).getBody().getSubject();
+    }
     public boolean isTokenValid(String token, UserDetails userDetails) {
         try {
             var claims = parse(token).getBody();
@@ -96,8 +98,13 @@ public class JwtService {
             if(claims.getExpiration().after(new Date())){
                 tcs.ExpireToken(Refreshtoken);
             }
-            return userDetails.getUsername().equals(claims.getSubject()) 
+            boolean TorF = userDetails.getUsername().equals(claims.getSubject()) 
                     && claims.getExpiration().after(new Date());
+                    System.out.println("******************************************************************");
+                    System.out.println(TorF);
+                    System.out.println("******************************************************************");
+                    System.out.println();
+                    return TorF;
         } catch (JwtException | IllegalArgumentException ex) {
             return false;
         }

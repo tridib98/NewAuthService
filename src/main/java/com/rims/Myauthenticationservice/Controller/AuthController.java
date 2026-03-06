@@ -79,10 +79,11 @@ public ResponseEntity<?> refresh(
     }
 
     try {
-        String username = jwtService.extractUsername(refreshToken);
+        String username = jwtService.extractUsernameFromRefreshToken(refreshToken);
         UserDetails userDetails = uds.loadUserByUsername(username);
-
-        if (jwtService.isTRefreshokenValid(refreshToken, userDetails)) {
+        boolean isRtokenValid = jwtService.isTRefreshokenValid(refreshToken, userDetails);
+        System.out.println("\n"+"*************************************"+"\n"+isRtokenValid+"\n");
+        if (isRtokenValid) {
             String token = jwtService.generateToken(userDetails);
             return ResponseEntity.ok(Map.of(
                 "token", token,
